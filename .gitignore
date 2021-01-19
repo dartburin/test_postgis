@@ -1,0 +1,9 @@
+# code file
+main
+Makefile
+
+*.txt
+
+.vscode/*
+data/*
+

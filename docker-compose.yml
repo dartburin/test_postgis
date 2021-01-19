@@ -1,0 +1,41 @@
+version: '3'
+services:
+  servgisdb:
+    restart: always
+    container_name: postgis
+    build:
+      context: .
+      dockerfile: Dockerfile-postgresql
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - /tmp/data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks:
+      - dockernet
+     
+  serv:
+    restart: always
+    container_name: RESTserver
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - A_DB_USER=postgres
+        - A_DB_PASS=postgres
+        - A_DB_BASE=coords
+        - A_DB_HOST=servgisdb
+        - A_DB_PORT=5432
+        - A_HTTP_HOST=0.0.0.0   
+        - A_HTTP_PORT=8080   
+    ports:
+      - "5432"
+      - "8080:8080"   
+    networks:
+      - dockernet      
+
+networks:
+  dockernet:
+    driver: bridge
