@@ -27,4 +27,6 @@ curl -XGET "http://127.0.0.1:8080/cities/3"
 echo
 curl -XGET "http://127.0.0.1:8080/cities/5"
 echo
-
+echo "Nearest for (32.32 03.45)"
+curl -XGET "http://127.0.0.1:8080/cities/find/32.31/03.45"
+echo

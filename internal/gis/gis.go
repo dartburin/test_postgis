@@ -197,3 +197,33 @@ func (b *City) SelectCity(par *ParamDB) (*[]City, error) {
 	}
 	return &bb, nil
 }
+
+// Find nearest city from database
+func (c *City) FindNearestCity(par *ParamDB) (*[]City, error) {
+	cc := make([]City, 0)
+	if par.Base == nil {
+		return &cc, errors.New("DB not opened")
+	}
+
+	query := fmt.Sprintf("SELECT id, title, coords, ST_X(coords::geometry) AS longitude, ST_Y(coords::geometry) AS latitude FROM city_records ORDER BY ST_Distance(coords, 'POINT(%v %v)'::geography) ASC LIMIT 1;",
+		c.Long, c.Lat)
+
+	rows, err := par.Base.Query(query)
+	if err != nil {
+		return &cc, errors.New("Select error")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var city City
+		if err := rows.Scan(&city.Id, &city.Title, &city.Coords, &city.Long, &city.Lat); err != nil {
+			return &cc, errors.New("Select scan error")
+		}
+		cc = append(cc, city)
+	}
+
+	if err != nil {
+		return &cc, errors.New("Error find a nearest city")
+	}
+	return &cc, nil
+}

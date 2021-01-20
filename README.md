@@ -47,6 +47,11 @@ curl -XPATCH "http://127.0.0.1:8080/cities/5" -d '{"coords": "POINT(115.311 12.2
 (PUT) (full update)
 curl -XPUT "http://127.0.0.1:8080/cities/7" -d '{"title": "Village", "coords": "POINT(81.145 52.243)"}'
 
+(FIND NEAREST)
+http://127.0.0.1:8080/cities/find/longitude/latitude
+curl -XGET "http://127.0.0.1:8080/cities/find/longitude/latitude"
+
+
 Start
 -------
 docker-compose up --build

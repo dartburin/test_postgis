@@ -44,6 +44,7 @@ func (s *supportHTTP) Start() error {
 	router.HandleFunc("/cities/{id}", ll.MidLogger(s.DelCity())).Methods("DELETE")
 	router.HandleFunc("/cities/{id}", ll.MidLogger(s.PutCity())).Methods("PUT")
 	router.HandleFunc("/cities/{id}", ll.MidLogger(s.PatchCity())).Methods("PATCH")
+	router.HandleFunc("/cities/find/{long}/{lat}", ll.MidLogger(s.FindNearestCity())).Methods("GET")
 
 	s.db.Log.Printf("Starting HTTP server at %s:%s\n", s.host, s.port)
 
@@ -59,13 +60,13 @@ func (s *supportHTTP) Start() error {
 func (s *supportHTTP) GetCity() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var bb pdb.City
-		books, err := bb.SelectCity(s.db)
+		city, err := bb.SelectCity(s.db)
 		if err != nil {
 			w.WriteHeader(500) // Internal Server Error
 			return
 		}
 
-		res, err := json.Marshal(books)
+		res, err := json.Marshal(city)
 		if err != nil {
 			w.WriteHeader(500) // Internal Server Error
 			return
@@ -216,5 +217,49 @@ func (s *supportHTTP) PatchCity() func(w http.ResponseWriter, r *http.Request) {
 
 		w.WriteHeader(200) // OK
 		//fmt.Fprintf(w, "Update database record id=%v\n", id)
+	}
+}
+
+// Handler for find nearest request
+func (s *supportHTTP) FindNearestCity() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		_, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(400) // Bad Request
+			return
+		}
+
+		params := mux.Vars(r)
+
+		long, err := strconv.ParseFloat(params["long"], 64)
+		if err != nil {
+			w.WriteHeader(400) // Bad Request
+			return
+		}
+		lat, err := strconv.ParseFloat(params["lat"], 64)
+		if err != nil {
+			w.WriteHeader(400) // Bad Request
+			return
+		}
+
+		b := &pdb.City{}
+		b.Long = long
+		b.Lat = lat
+
+		city, err := b.FindNearestCity(s.db)
+		if err != nil {
+			w.WriteHeader(500) // Internal Server Error
+			return
+		}
+
+		res, err := json.Marshal(city)
+		if err != nil {
+			w.WriteHeader(500) // Internal Server Error
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200) // OK
+		fmt.Fprintf(w, "%s", string(res))
 	}
 }
