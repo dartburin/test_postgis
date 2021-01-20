@@ -1,5 +1,5 @@
 # test_postgis
-Test project with PostGis and REST HTTP gateway.
+Test project with PostGis and REST HTTP.
 
 
 Test method

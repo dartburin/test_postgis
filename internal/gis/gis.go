@@ -29,6 +29,8 @@ type City struct {
 	Id     int64
 	Title  string
 	Coords string
+	Long   float64
+	Lat    float64
 }
 
 // Create connection to db
@@ -171,9 +173,9 @@ func (b *City) SelectCity(par *ParamDB) (*[]City, error) {
 
 	var query string
 	if b.Id > 0 {
-		query = fmt.Sprintf("SELECT id, title, coords FROM city_records WHERE id = %v ORDER BY id;", b.Id)
+		query = fmt.Sprintf("SELECT id, title, coords, ST_X(coords::geometry) AS longitude, ST_Y(coords::geometry) AS latitude FROM city_records WHERE id = %v ORDER BY id;", b.Id)
 	} else {
-		query = fmt.Sprintf("SELECT id, title, coords FROM city_records ORDER BY id;")
+		query = fmt.Sprintf("SELECT id, title, coords, ST_X(coords::geometry) AS longitude, ST_Y(coords::geometry) AS latitude  FROM city_records ORDER BY id;")
 	}
 
 	rows, err := par.Base.Query(query)
@@ -184,7 +186,7 @@ func (b *City) SelectCity(par *ParamDB) (*[]City, error) {
 
 	for rows.Next() {
 		var city City
-		if err := rows.Scan(&city.Id, &city.Title, &city.Coords); err != nil {
+		if err := rows.Scan(&city.Id, &city.Title, &city.Coords, &city.Long, &city.Lat); err != nil {
 			return &bb, errors.New("Select scan error")
 		}
 		bb = append(bb, city)
